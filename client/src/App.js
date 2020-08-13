@@ -1,10 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Redirect, Switch } from "react-router-dom";
-<<<<<<< HEAD
-=======
 
 import "./App.css"
->>>>>>> 92e0990edaa8b8ab7211ea9fdd4ae0a2d3acdaea
 
 import NavMenu from "./components/navbar.component";
 import NationalView from "./components/national-view.component";
