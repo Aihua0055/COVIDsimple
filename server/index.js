@@ -2,6 +2,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require('path');
+const helmet = require("helmet");
+const compression = require("compression");
+const { expressCspHeader, NONCE, NONE, SELF, DATA, INLINE } = require('express-csp-header');
 
 /* Add variables from .env file to environment */
 const dotenv = require("dotenv").config();
@@ -16,22 +20,41 @@ const PORT = process.env.PORT || 5000;
 
 /* Register middleware */
 const app = express(); // init express
+app.use(helmet());
+// Sets "Content-Security-Policy Header"
+app.use(expressCspHeader({
+    policies: {
+        'default-src': [NONE],
+        'img-src': [NONE],
+        'script-src': [NONE]
+    },
+}));
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-// enable CORS on all requests from origin localhost:3000
-// may need to change to a function allowing multiple origins on deployment:
+// enable CORS on specified URL
+//  may need to change to a function allowing multiple origins on deployment:
 //  Ref: https://medium.com/@alexishevia/using-cors-in-express-cac7e29b005b
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: "http://localhost:3000/",
     })
 );
+//app.use(cors()); // allow cors globallly
+
 
 /* Register API endpoints */
 app.use("/api/articles", require("./api/articles"));
 app.use("/api/covid-data", require("./api/covid-data"));
 app.use("/api/news", require("./api/news"));
+
+if (ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../client/build'))) /* serve static build files */
+    app.use((req, res) => { /* fallback to index.html */
+        res.sendFile(path.join(__dirname, '../client/build/index.html'))
+    })
+}
 
 /* Setup listening on PORT for request handling*/
 app.listen(PORT, () => {
